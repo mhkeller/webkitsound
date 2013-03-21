@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SOOOUUUNNNDDDD</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+	<script src="libs/bufferloader.js"></script>
+	<style>
+		#container{
+			position:absolute;
+			top:0;
+			right:0;
+			bottom:0;
+			left:0;
+		}
+	</style>
+</head>
+<body>
+	<div id='container'></div>
+	<script>
+		window.onload = init;
+		var context;
+		var bufferLoader;
+		var BUFFERS = {};
+
+		var startTime;
+		var tempo;
+		var eighthNoteTime;
+
+		function init() {
+		  context = new webkitAudioContext();
+
+		  startTime = context.currentTime + 0.100;
+		  tempo = 80;
+		  eighthNoteTime = (60 / tempo) / 2;
+
+		  bufferLoader = new BufferLoader(
+		    context,
+		    [
+		      'sounds/clapping-crowd.wav',
+		      'sounds/snare.wav',
+		      'sounds/kick.wav',
+		    ],
+		    finishedLoading
+		    );
+
+		  bufferLoader.load();
+		}
+
+		function finishedLoading(bufferList) {
+		  // Create two sources and play them both together.
+		  var source1 = context.createBufferSource();
+		  var source2 = context.createBufferSource();
+		  var source3 = context.createBufferSource();
+
+
+		  source1.buffer = bufferList[0];
+		  source2.buffer = bufferList[1];
+		  source3.buffer = bufferList[1];
+
+		  BUFFERS.hihat = source1.buffer
+		  BUFFERS.snare = source2.buffer
+		  BUFFERS.kick = source2.buffer
+
+		  // loadBeat(BUFFERS.hihat, BUFFERS.snare, BUFFERS.kick);
+
+		}
+
+
+
+		function loadBeat(hihat, snare, kick){
+			var startTime = 0
+			for (var bar = 0; bar < 2; bar++) {
+			  var time = startTime + bar * 8 * eighthNoteTime;
+				console.log(time)
+			  // Play the bass (kick) drum on beats 1, 5
+			  playSound(kick, time);
+			  playSound(kick, time + 4 * eighthNoteTime);
+
+			  // Play the snare drum on beats 3, 7
+			  playSound(snare, time + 2 * eighthNoteTime);
+			  playSound(snare, time + 6 * eighthNoteTime);
+
+			  // Play the hi-hat every eighth note.
+			  for (var i = 0; i < 8; ++i) {
+			    playSound(hihat, time + i * eighthNoteTime);
+			  }
+			}
+		}
+
+
+		function playSound(buffer, time) {
+		  var source = context.createBufferSource();
+		  source.buffer = buffer;
+		  source.connect(context.destination);
+		  source.noteOn(time);
+		}
+
+		$('body').click(function(){
+			console.log('here')
+			playSound(BUFFERS.hihat)
+		})
+
+
+	</script>
+</body>
+</html>
